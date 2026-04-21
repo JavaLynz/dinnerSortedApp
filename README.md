@@ -16,6 +16,7 @@ An AI-driven meal planner. Users input ingredients they have at home and dietary
 ## Project Structure
 dinnerSortedApp/
 ├── backend/    # Spring Boot REST API
+
 └── frontend/   # React 18 + Vite
 
 ## Getting Started
