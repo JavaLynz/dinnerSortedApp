@@ -1,24 +1,29 @@
-# Compiled class file
-*.class
+# ── Java / Spring Boot ──────────────────────
+backend/target/
+backend/.mvn/
+backend/*.class
+backend/.env
+backend/application-local.properties
 
-# Log file
+# ── Node / React ────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+
+# ── IntelliJ IDEA ───────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ── VS Code ─────────────────────────────────
+.vscode/
+
+# ── OS ──────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Misc ────────────────────────────────────
 *.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+*.tmp
