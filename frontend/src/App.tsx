@@ -1,21 +1,20 @@
-import { useEffect, useState } from "react"
+
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import IngredientInputPage from "./pages/IngredientInputPage.tsx";
+import ResultsPage from "./pages/Results.tsx";
 
 function App() {
-  const [status, setStatus] = useState<string>("checking...")
-
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/health`)
-        .then(res => res.text())
-        .then(data => setStatus(data))
-        .catch(() => setStatus("error — could not reach backend"))
-  }, [])
-
-  return (
-      <div>
-        <h1>Dinner Sorted</h1>
-        <p>Backend status: {status}</p>
-      </div>
-  )
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route
+                    path="/"
+                    element={<IngredientInputPage/>}/>
+                <Route
+                    path="/results"
+                    element={<ResultsPage />} />
+            </Routes>
+        </BrowserRouter>
+    )
 }
-
 export default App
