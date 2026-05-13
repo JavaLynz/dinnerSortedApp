@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+:root {
+    --surface:           #0F1612;
+    --surface-low:       #0A1009;
+    --surface-high:      #1E2B1F;
+    --primary:           #52E8A8;
+    --primary-container: #34C484;
+    --on-primary:        #0A1009;
+    --on-surface:        #EDE8DC;
+    --gold:              #C8B97A;
+    --coral:             #FC7C78;
+    --serif:             'Noto Serif', Georgia, serif;
+    --sans:              'Plus Jakarta Sans', system-ui, sans-serif;
+}

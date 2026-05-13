@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
+import {supabase} from "../services/SupabaseClient.ts";
 
 
 const PANTRY_STAPLES = [
@@ -37,6 +38,13 @@ const DIETARY_OPTIONS = [
     "Vegetarian", "Vegan", "Gluten-free", "Dairy-free", "Nut-free", "Halal"
 ]
 
+const GREETINGS = [
+    "Right then —",
+    "Let's do this —",
+    "Sunday's doing the work —",
+    "Week sorted in 60 seconds —",
+]
+
 export default function IngredientInputPage() {
     const navigate = useNavigate()
     const [selectedIngredients, setSelectedIngredients] = useState<string[]>([...PANTRY_STAPLES])
@@ -46,6 +54,20 @@ export default function IngredientInputPage() {
     const [people, setPeople] = useState(4)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    const [userName, setUserName] = useState<string | null>(null)
+    const greeting = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => {
+            if (data?.user?.email) {
+                // Use the part before @ as a friendly name fallback
+                const name = data.user.user_metadata?.full_name
+                    || data.user.user_metadata?.name
+                    || data.user.email.split("@")[0]
+                setUserName(name)
+            }
+        })
+    }, [])
 
     const toggleIngredient = (ingredient: string) => {
         setSelectedIngredients(prev =>
@@ -83,7 +105,7 @@ export default function IngredientInputPage() {
                 `${import.meta.env.VITE_API_BASE_URL}/api/recipes/generate`,
                 { ingredients: selectedIngredients, dietary, days, people }
             )
-            navigate("/results", { state: {mealPlan: response.data } })
+            navigate("/results", { state: { mealPlan: response.data, ingredients: selectedIngredients, dietary, people } })
         } catch (err) {
             setError("Something went wrong. Please try again.")
         } finally {
@@ -92,163 +114,331 @@ export default function IngredientInputPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6 max-w-2xl mx-auto">
-            <h1 className="text-3xl font-bold text-green-700 mb-2">
-            Dinner Sorted
-            </h1>
-            <p className="text-gray-500 mb-6">
-                Tell us what you have and we'll sort the week
-            </p>
+        <div style={{ background: "#0F1612", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+            {/* Nav */}
+            <nav style={{
+                background: "#0A1009",
+                borderBottom: "1px solid rgba(200,185,122,0.15)",
+                padding: "1.25rem 1.5rem",
+                display: "flex",
+                alignItems: "baseline",
+                gap: "2px"
+            }}>
+                <span style={{
+                    fontFamily: "'Noto Serif', Georgia, serif",
+                    fontStyle: "italic",
+                    fontWeight: 400,
+                    fontSize: "1.15rem",
+                    color: "rgba(237,232,220,0.4)"
+                }}>dinner</span>
+                <span style={{
+                    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                    fontWeight: 800,
+                    fontSize: "0.9rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "#52E8A8"
+                }}>sorted</span>
+            </nav>
 
-            {/* Main ingredients */}
-            <section className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-700 mb-3">What's in your fridge?</h2>
-                <div className="flex flex-wrap gap-2">
-                    {COMMON_INGREDIENTS.map(ingredient => (
-                        <button
-                            key={ingredient}
-                            onClick={() => toggleIngredient(ingredient)}
-                            className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                                selectedIngredients.includes(ingredient)
-                                    ? "bg-green-600 text-white border-green-600"
-                                    : "bg-white text-gray-700 border-gray-300 hover:border-green-400"
-                            }`}
-                        >
-                            {ingredient}
-                        </button>
-                    ))}
-                </div>
-            </section>
+            <div style={{ maxWidth: "680px", margin: "0 auto", padding: "2rem 1.5rem 4rem" }}>
 
-            {/* Pantry staples — pre-checked */}
-            <section className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-700 mb-1">Pantry staples</h2>
-                <p className="text-xs text-gray-400 mb-3">Pre-selected — tap to remove anything you're out of</p>
-                <div className="flex flex-wrap gap-2">
-                    {PANTRY_STAPLES.map(ingredient => (
-                        <button
-                            key={ingredient}
-                            onClick={() => toggleIngredient(ingredient)}
-                            className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                                selectedIngredients.includes(ingredient)
-                                    ? "bg-amber-500 text-white border-amber-500"
-                                    : "bg-white text-gray-400 border-gray-200 line-through hover:border-amber-300"
-                            }`}
-                        >
-                            {ingredient}
-                        </button>
-                    ))}
+                {/* Welcome block */}
+                <div style={{ marginBottom: "2.5rem" }}>
+                    <p style={{
+                        fontFamily: "'Noto Serif', Georgia, serif",
+                        fontStyle: "italic",
+                        fontSize: "0.85rem",
+                        color: "#52E8A8",
+                        marginBottom: "0.4rem",
+                        letterSpacing: "0.01em"
+                    }}>{greeting}</p>
+                    <h1 style={{
+                        fontFamily: "'Noto Serif', Georgia, serif",
+                        fontSize: "clamp(1.6rem, 5vw, 2.2rem)",
+                        fontWeight: 600,
+                        color: "#EDE8DC",
+                        lineHeight: 1.2,
+                        letterSpacing: "-0.02em",
+                        marginBottom: "0.6rem"
+                    }}>
+                        {userName
+                            ? <>What's in your kitchen, <span style={{ color: "#52E8A8" }}>{userName}?</span></>
+                            : <>What's in your kitchen this week?</>
+                        }
+                    </h1>
+                    <p style={{
+                        fontSize: "0.9rem",
+                        color: "rgba(237,232,220,0.55)",
+                        lineHeight: 1.65
+                    }}>
+                        Tick what you have — we'll build your week around it.
+                    </p>
                 </div>
-            </section>
 
-            {/* Custom ingredient input */ }
-            <section className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-700 mb-3">
-                    Anything else?
-                </h2>
-                <div className="flex gap-2">
-                    <input
-                        type="text"
-                        value={customIngredient}
-                        onChange={e => setCustomIngredient(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && addCustomIngredient()}
-                        placeholder="e.g. coconut milk"
-                        className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-green-500"
-                    />
-                    <button
-                        onClick={addCustomIngredient}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700"
-                    >
-                        Add
-                    </button>
-                </div>
-                { /* Show custom additions */}
-                {selectedIngredients.filter(i => !COMMON_INGREDIENTS.includes(i) && !PANTRY_STAPLES.includes(i)).length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                        {selectedIngredients
-                            .filter(i => !COMMON_INGREDIENTS.includes(i) && !PANTRY_STAPLES.includes(i))
-                            .map(i => (
-                                <span
-                                  key={i}
-                                  className="px-3 py-1.5 rounded-full text-sm bg-green-100 text-green-800 border border-green-300 cursor-pointer"
-                                  onClick={() => toggleIngredient(i)}
-                                >
-                                    {i} ✕
-                                </span>
-                            ))}
+                {/* Fridge ingredients */}
+                <Section label="What's in your fridge & freezer">
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                        {COMMON_INGREDIENTS.map(ingredient => (
+                            <Chip
+                                key={ingredient}
+                                label={ingredient}
+                                selected={selectedIngredients.includes(ingredient)}
+                                onClick={() => toggleIngredient(ingredient)}
+                                variant="teal"
+                            />
+                        ))}
                     </div>
-                )}
-            </section>
+                </Section>
 
-            { /* Dietary preferences */}
-            <section className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-700 mb-3">
-                    Dietary requirements
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                    {DIETARY_OPTIONS.map(option => (
+                {/* Pantry staples */}
+                <Section
+                    label="Pantry staples"
+                    sub="Pre-selected — tap to remove anything you're out of"
+                >
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                        {PANTRY_STAPLES.map(ingredient => (
+                            <Chip
+                                key={ingredient}
+                                label={ingredient}
+                                selected={selectedIngredients.includes(ingredient)}
+                                onClick={() => toggleIngredient(ingredient)}
+                                variant="gold"
+                            />
+                        ))}
+                    </div>
+                </Section>
+
+                {/* Custom ingredient */}
+                <Section label="Anything else?">
+                    <div style={{ display: "flex", gap: "0.6rem" }}>
+                        <input
+                            type="text"
+                            value={customIngredient}
+                            onChange={e => setCustomIngredient(e.target.value)}
+                            onKeyDown={e => e.key === "Enter" && addCustomIngredient()}
+                            placeholder="e.g. halloumi, mango chutney…"
+                            style={{
+                                flex: 1,
+                                background: "#0A1009",
+                                border: "1px solid rgba(82,232,168,0.2)",
+                                borderRadius: "0.6rem",
+                                padding: "0.7rem 1rem",
+                                fontSize: "0.88rem",
+                                color: "#EDE8DC",
+                                outline: "none",
+                                fontFamily: "inherit"
+                            }}
+                            onFocus={e => (e.target.style.borderColor = "rgba(82,232,168,0.55)")}
+                            onBlur={e => (e.target.style.borderColor = "rgba(82,232,168,0.2)")}
+                        />
                         <button
-                          key={option}
-                          onClick={() => toggleDietary(option)}
-                          className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                              dietary.includes(option)
-                                ? "bg-green-600 text-white border-green-600"
-                                : "bg-white text-gray-700 border-gray-300 hover:border-green-400"  
-                          }`}
+                            onClick={addCustomIngredient}
+                            style={{
+                                background: "rgba(82,232,168,0.12)",
+                                border: "1px solid rgba(82,232,168,0.35)",
+                                borderRadius: "0.6rem",
+                                color: "#52E8A8",
+                                padding: "0.7rem 1.1rem",
+                                fontSize: "0.85rem",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                fontFamily: "inherit",
+                                whiteSpace: "nowrap"
+                            }}
                         >
-                            {option}
+                            Add
                         </button>
-                    ))}
-                </div>
-            </section>
+                    </div>
+                    {selectedIngredients.filter(i => !COMMON_INGREDIENTS.includes(i) && !PANTRY_STAPLES.includes(i)).length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.75rem" }}>
+                            {selectedIngredients
+                                .filter(i => !COMMON_INGREDIENTS.includes(i) && !PANTRY_STAPLES.includes(i))
+                                .map(i => (
+                                    <span
+                                        key={i}
+                                        onClick={() => toggleIngredient(i)}
+                                        style={{
+                                            padding: "0.35rem 0.85rem",
+                                            borderRadius: "2rem",
+                                            fontSize: "0.82rem",
+                                            background: "rgba(82,232,168,0.1)",
+                                            color: "#52E8A8",
+                                            border: "1px solid rgba(82,232,168,0.3)",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        {i} ✕
+                                    </span>
+                                ))}
+                        </div>
+                    )}
+                </Section>
 
-            {/* Days and people */}
-            <section className="mb-8 flex gap-6">
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Days
-                    </label>
-                    <select
-                        value={days}
-                        onChange={e => setDays(Number(e.target.value))}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
-                    >
-                        {[1,2,3,4,5,6,7].map(d => (
-                            <option
-                                key={d}
-                                value={d}>{d} {d === 1 ? "day" : "days"}
-                            </option>
+                {/* Dietary */}
+                <Section label="Dietary requirements">
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                        {DIETARY_OPTIONS.map(option => (
+                            <Chip
+                                key={option}
+                                label={option}
+                                selected={dietary.includes(option)}
+                                onClick={() => toggleDietary(option)}
+                                variant="teal"
+                            />
                         ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        People
-                    </label>
-                    <select
-                        value={people}
-                        onChange={e => setPeople(Number(e.target.value))}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
-                    >
-                        {[1,2,3,4,5,6,7,8].map(p => (
-                            <option
-                              key={p}
-                            value={p}>{p} {p === 1 ? "person" : "people"}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </section>
+                    </div>
+                </Section>
 
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p> }
+                {/* Days & people */}
+                <Section label="Who are we feeding?">
+                    <div style={{ display: "flex", gap: "1.5rem" }}>
+                        <SelectField
+                            label="Days"
+                            value={days}
+                            onChange={setDays}
+                            options={[1,2,3,4,5,6,7].map(d => ({ value: d, label: `${d} ${d === 1 ? "day" : "days"}` }))}
+                        />
+                        <SelectField
+                            label="People"
+                            value={people}
+                            onChange={setPeople}
+                            options={[1,2,3,4,5,6,7,8].map(p => ({ value: p, label: `${p} ${p === 1 ? "person" : "people"}` }))}
+                        />
+                    </div>
+                </Section>
 
-            <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold text-lg hover:bg-green-700 disabled:opacity-50 siabled:cursor-not-allowed transition-colors"
+                {error && (
+                    <p style={{ color: "#FC7C78", fontSize: "0.85rem", marginBottom: "1rem" }}>{error}</p>
+                )}
+
+                <button
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    style={{
+                        width: "100%",
+                        background: loading
+                            ? "rgba(82,232,168,0.3)"
+                            : "linear-gradient(135deg, #52E8A8, #34C484)",
+                        color: "#0A1009",
+                        border: "none",
+                        borderRadius: "0.85rem",
+                        padding: "1rem",
+                        fontSize: "1rem",
+                        fontWeight: 700,
+                        fontFamily: "inherit",
+                        cursor: loading ? "not-allowed" : "pointer",
+                        letterSpacing: "0.02em",
+                        boxShadow: loading ? "none" : "0 0 24px rgba(82,232,168,0.25)",
+                        transition: "opacity 0.2s, box-shadow 0.2s"
+                    }}
+                >
+                    {loading ? "Sorting your week…" : "Sort my week →"}
+                </button>
+            </div>
+        </div>
+    )
+}
+
+// ── Sub-components ──────────────────────────────────────────────
+
+function Section({ label, sub, children }: { label: string; sub?: string; children: React.ReactNode }) {
+    return (
+        <div style={{ marginBottom: "2rem" }}>
+            <h2 style={{
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "#C8B97A",
+                marginBottom: sub ? "0.25rem" : "0.75rem"
+            }}>{label}</h2>
+            {sub && (
+                <p style={{
+                    fontSize: "0.78rem",
+                    color: "rgba(237,232,220,0.35)",
+                    fontStyle: "italic",
+                    marginBottom: "0.75rem"
+                }}>{sub}</p>
+            )}
+            {children}
+        </div>
+    )
+}
+
+function Chip({ label, selected, onClick, variant }: {
+    label: string
+    selected: boolean
+    onClick: () => void
+    variant: "teal" | "gold"
+}) {
+    const activeStyles = variant === "teal"
+        ? { background: "rgba(82,232,168,0.15)", color: "#52E8A8", border: "1px solid rgba(82,232,168,0.5)" }
+        : { background: "rgba(200,185,122,0.15)", color: "#C8B97A", border: "1px solid rgba(200,185,122,0.45)" }
+
+    const inactiveStyles = variant === "teal"
+        ? { background: "transparent", color: "rgba(237,232,220,0.45)", border: "1px solid rgba(237,232,220,0.12)" }
+        : { background: "transparent", color: "rgba(237,232,220,0.3)", border: "1px solid rgba(237,232,220,0.08)", textDecoration: "line-through" as const }
+
+    return (
+        <button
+            onClick={onClick}
+            style={{
+                padding: "0.35rem 0.85rem",
+                borderRadius: "2rem",
+                fontSize: "0.82rem",
+                fontFamily: "inherit",
+                fontWeight: selected ? 500 : 400,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                ...(selected ? activeStyles : inactiveStyles)
+            }}
+        >
+            {label}
+        </button>
+    )
+}
+
+function SelectField({ label, value, onChange, options }: {
+    label: string
+    value: number
+    onChange: (v: number) => void
+    options: { value: number; label: string }[]
+}) {
+    return (
+        <div>
+            <label style={{
+                display: "block",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "rgba(237,232,220,0.45)",
+                marginBottom: "0.4rem"
+            }}>{label}</label>
+            <select
+                value={value}
+                onChange={e => onChange(Number(e.target.value))}
+                style={{
+                    background: "#0A1009",
+                    border: "1px solid rgba(82,232,168,0.2)",
+                    borderRadius: "0.6rem",
+                    padding: "0.6rem 2rem 0.6rem 0.9rem",
+                    fontSize: "0.88rem",
+                    color: "#EDE8DC",
+                    fontFamily: "inherit",
+                    cursor: "pointer",
+                    outline: "none",
+                    appearance: "none",
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2352E8A8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 0.7rem center"
+                }}
             >
-                {loading ? "Sorting your week..." : "Sort my week →"}
-            </button>
+                {options.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+            </select>
         </div>
     )
 }

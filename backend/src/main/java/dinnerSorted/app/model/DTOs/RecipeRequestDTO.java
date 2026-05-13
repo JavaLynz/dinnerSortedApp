@@ -17,6 +17,10 @@ public record RecipeRequestDTO (
         int days,
 
         @Min(1) @Max(12)
-        int people
+        int people,
+
+        List<String> exclude,
+
+        List<String> keep
 
 ) {}
