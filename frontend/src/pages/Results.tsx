@@ -70,6 +70,7 @@ export default function ResultsPage() {
 
     useEffect(() => {
         if (!initial) navigate("/")
+        window.scrollTo(0, 0)
     }, [])
 
     // ── Like / unlike ────────────────────────────────────────────

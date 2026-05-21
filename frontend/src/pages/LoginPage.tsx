@@ -1,37 +1,37 @@
-import {useNavigate} from "react-router-dom";
 import {useState} from "react";
 import {supabase} from "../services/SupabaseClient.ts";
 
+type Stage = "input" | "sent"
+
 export default function LoginPage() {
-    const navigate = useNavigate()
     const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [isRegistering, setIsRegistering] = useState(false)
+    const [stage, setStage] = useState<Stage>("input")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
-    const [message, setMessage] = useState("")
 
-    const handleSubmit = async () => {
+    const handleSend = async () => {
+        if (!email.trim()) {
+            setError("Please enter your email address.")
+            return
+        }
         setError("")
-        setMessage("")
         setLoading(true)
 
         try {
-            if (isRegistering) {
-                const { error } = await supabase.auth.signUp({ email, password })
-                if (error) throw error
-                setMessage("Check your email to confirm your account.")
-            } else {
-                const { error } = await supabase.auth.signInWithPassword({ email, password})
-                if (error) throw error
-                navigate("/")
+            const { error } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    emailRedirectTo: window.location.origin
+                }
+            })
+            if (error) throw error
+                setStage("sent")
+            } catch (err: any) {
+                setError(err.message)
+            } finally {
+                setLoading(false)
             }
-        } catch (err: any) {
-            setError(err.message)
-        } finally {
-            setLoading(false)
         }
-    }
 
     return (
         <div style={{
@@ -86,12 +86,9 @@ export default function LoginPage() {
                         fontFamily: "'Noto Serif', Georgia, serif",
                         fontStyle: "italic",
                         fontSize: "0.88rem",
-                        color: "rgba(237,232,220,0.4)",
-                        lineHeight: 1.5
+                        color: "rgba(237,232,220,0.4)"
                     }}>
-                        {isRegistering
-                            ? "Your Sundays are about to get a lot easier."
-                            : "Sorted Sunday. Sorted week."}
+                        Sorted Sunday. Sorted week.
                     </p>
                 </div>
 
@@ -103,170 +100,160 @@ export default function LoginPage() {
                     padding: "2rem",
                     boxShadow: "0 0 0 1px rgba(82,232,168,0.06), 0 20px 60px rgba(0,0,0,0.35)"
                 }}>
-                    <h2 style={{
-                        fontFamily: "'Noto Serif', Georgia, serif",
-                        fontSize: "1.2rem",
-                        fontWeight: 600,
-                        color: "#EDE8DC",
-                        marginBottom: "0.3rem"
-                    }}>
-                        {isRegistering ? "Create your account" : "Welcome back"}
-                    </h2>
-                    <p style={{
-                        fontSize: "0.82rem",
-                        color: "rgba(237,232,220,0.4)",
-                        marginBottom: "1.75rem"
-                    }}>
-                        {isRegistering
-                            ? "Takes 30 seconds. Your week gets sorted from here."
-                            : "Your meal plan is waiting."}
-                    </p>
-
-                    {/* Email */}
-                    <div style={{ marginBottom: "1rem" }}>
-                        <label style={{
-                            display: "block",
-                            fontSize: "0.72rem",
-                            fontWeight: 600,
-                            letterSpacing: "0.1em",
-                            textTransform: "uppercase",
-                            color: "rgba(237,232,220,0.45)",
-                            marginBottom: "0.45rem"
-                        }}>Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            placeholder="you@example.com"
-                            style={{
-                                width: "100%",
-                                background: "#0A1009",
-                                border: "1px solid rgba(82,232,168,0.15)",
-                                borderRadius: "0.6rem",
-                                padding: "0.75rem 1rem",
-                                fontSize: "0.9rem",
+                    {stage === "input" ? (
+                        <>
+                            <h2 style={{
+                                fontFamily: "'Noto Serif', Georgia, serif",
+                                fontSize: "1.2rem",
+                                fontWeight: 600,
                                 color: "#EDE8DC",
-                                fontFamily: "inherit",
-                                outline: "none",
-                                boxSizing: "border-box",
-                                transition: "border-color 0.2s"
-                            }}
-                            onFocus={e => (e.target.style.borderColor = "rgba(82,232,168,0.5)")}
-                            onBlur={e => (e.target.style.borderColor = "rgba(82,232,168,0.15)")}
-                        />
-                    </div>
+                                marginBottom: "0.3rem"
+                            }}> Sign in
+                            </h2>
+                            <p style={{
+                                fontSize: "0.82rem",
+                                color: "rgba(237,232,220,0.4)",
+                                marginBottom: "1.75rem"
+                            }}>
+                                Enter your email and we'll send you a link - no password needed
+                            </p>
 
-                    {/* Password */}
-                    <div style={{ marginBottom: "1.5rem" }}>
-                        <label style={{
-                            display: "block",
-                            fontSize: "0.72rem",
-                            fontWeight: 600,
-                            letterSpacing: "0.1em",
-                            textTransform: "uppercase",
-                            color: "rgba(237,232,220,0.45)",
-                            marginBottom: "0.45rem"
-                        }}>Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                            placeholder="••••••••"
-                            style={{
-                                width: "100%",
-                                background: "#0A1009",
-                                border: "1px solid rgba(82,232,168,0.15)",
-                                borderRadius: "0.6rem",
-                                padding: "0.75rem 1rem",
-                                fontSize: "0.9rem",
-                                color: "#EDE8DC",
-                                fontFamily: "inherit",
-                                outline: "none",
-                                boxSizing: "border-box",
-                                transition: "border-color 0.2s"
-                            }}
-                            onFocus={e => (e.target.style.borderColor = "rgba(82,232,168,0.5)")}
-                            onBlur={e => (e.target.style.borderColor = "rgba(82,232,168,0.15)")}
-                        />
-                    </div>
+                            {/* Email */}
+                            <div style={{ marginBottom: "1rem" }}>
+                                <label style={{
+                                    display: "block",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 600,
+                                    letterSpacing: "0.1em",
+                                    textTransform: "uppercase",
+                                    color: "rgba(237,232,220,0.45)",
+                                    marginBottom: "0.45rem"
+                                }}>Email</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    placeholder="you@example.com"
+                                    style={{
+                                        width: "100%",
+                                        background: "#0A1009",
+                                        border: "1px solid rgba(82,232,168,0.15)",
+                                        borderRadius: "0.6rem",
+                                        padding: "0.75rem 1rem",
+                                        fontSize: "0.9rem",
+                                        color: "#EDE8DC",
+                                        fontFamily: "inherit",
+                                        outline: "none",
+                                        boxSizing: "border-box",
+                                        transition: "border-color 0.2s"
+                                    }}
+                                    onFocus={e => (e.target.style.borderColor = "rgba(82,232,168,0.5)")}
+                                    onBlur={e => (e.target.style.borderColor = "rgba(82,232,168,0.15)")}
+                                />
+                            </div>
 
-                    {error && (
-                        <p style={{
-                            color: "#FC7C78",
-                            fontSize: "0.82rem",
-                            marginBottom: "1rem",
-                            padding: "0.6rem 0.85rem",
-                            background: "rgba(252,124,120,0.08)",
-                            border: "1px solid rgba(252,124,120,0.2)",
-                            borderRadius: "0.5rem"
-                        }}>{error}</p>
-                    )}
-                    {message && (
-                        <p style={{
-                            color: "#52E8A8",
-                            fontSize: "0.82rem",
-                            marginBottom: "1rem",
-                            padding: "0.6rem 0.85rem",
-                            background: "rgba(82,232,168,0.08)",
-                            border: "1px solid rgba(82,232,168,0.2)",
-                            borderRadius: "0.5rem"
-                        }}>{message}</p>
-                    )}
 
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        style={{
-                            width: "100%",
-                            background: loading
-                                ? "rgba(82,232,168,0.3)"
-                                : "linear-gradient(135deg, #52E8A8, #34C484)",
-                            color: "#0A1009",
-                            border: "none",
-                            borderRadius: "0.75rem",
-                            padding: "0.85rem",
-                            fontSize: "0.95rem",
-                            fontWeight: 700,
-                            fontFamily: "inherit",
-                            cursor: loading ? "not-allowed" : "pointer",
-                            boxShadow: loading ? "none" : "0 0 20px rgba(82,232,168,0.2)",
-                            transition: "opacity 0.2s",
-                            marginBottom: "1rem",
-                            letterSpacing: "0.02em"
-                        }}
-                    >
+                            {error && (
+                                <p style={{
+                                    color: "#FC7C78",
+                                    fontSize: "0.82rem",
+                                    marginBottom: "1rem",
+                                    padding: "0.6rem 0.85rem",
+                                    background: "rgba(252,124,120,0.08)",
+                                    border: "1px solid rgba(252,124,120,0.2)",
+                                    borderRadius: "0.5rem"
+                                }}>{error}</p>
+                            )}
+
+                            <button
+                                onClick={handleSend}
+                                disabled={loading}
+                                style={{
+                                    width: "100%",
+                                    background: loading
+                                        ? "rgba(82,232,168,0.3)"
+                                        : "linear-gradient(135deg, #52E8A8, #34C484)",
+                                    color: "#0A1009",
+                                    border: "none",
+                                    borderRadius: "0.75rem",
+                                    padding: "0.85rem",
+                                    fontSize: "0.95rem",
+                                    fontWeight: 700,
+                                    fontFamily: "inherit",
+                                    cursor: loading ? "not-allowed" : "pointer",
+                                    boxShadow: loading ? "none" : "0 0 20px rgba(82,232,168,0.2)",
+                                    transition: "opacity 0.2s",
+                                    marginBottom: "1rem",
+                                    letterSpacing: "0.02em"
+                                }}
+                            >
                         {loading
-                            ? "Please wait…"
-                            : isRegistering
-                                ? "Create account →"
-                                : "Sign in →"
+                            ? "Sending…"
+                            : "Send my link → "
                         }
                     </button>
+                  </>
+              ) : (
 
-                    <button
-                        onClick={() => { setIsRegistering(!isRegistering); setError(""); setMessage("") }}
-                        style={{
-                            width: "100%",
-                            background: "transparent",
-                            border: "none",
-                            fontSize: "0.82rem",
-                            color: "rgba(237,232,220,0.35)",
-                            cursor: "pointer",
-                            fontFamily: "inherit",
-                            padding: "0.25rem",
-                            transition: "color 0.2s"
-                        }}
-                        onMouseEnter={e => ((e.target as HTMLElement).style.color = "#52E8A8")}
-                        onMouseLeave={e => ((e.target as HTMLElement).style.color = "rgba(237,232,220,0.35)")}
-                    >
-                        {isRegistering
-                            ? "Already have an account? Sign in"
-                            : "Don't have an account? Register"}
-                    </button>
-                </div>
+                  <div style={{ textAlign: "center", padding: "0.5rem 0"}}>
+                      <div style={{
+                          width: "48px",
+                          height: "48px",
+                          borderRadius: "50%",
+                          background: "rgba(82,232,168,0.1)",
+                          border: "1px solid rgba(82,232,168,0.3)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          margin: "0 auto 1.25rem",
+                          fontSize: "1.4rem"
+                  }}>✉️</div>
+                  <h2 style={{
+                      fontFamily: "'Noto Serif',Georgia, serif",
+                      fontSize: "1.15rem",
+                      fontWeight: "600",
+                      color: "EDE8DC",
+                      marginBottom: "0.5rem"
+                  }}>Check your inbox</h2>
+                  <p style={{
+                      fontSize: "0.85rem",
+                      color: "rgba(237,232,220,0.5)",
+                      lineHeight: 1.65,
+                      marginBottom: "1.5rem"
+                  }}>
+                      We've sent a sign-in link to<br />
+                      <span style={{ color: "#52E8A8", fontWeight: 500}}>{email}</span>
+                  </p>
+                  <p style={{
+                      fontSize: "0.78rem",
+                      color: "rgba(237,232,220,0.25)",
+                      fontStyle: "Italic",
+                      lineHeight: 1.55
+                  }}>
+                      The link expires in 1 hour.<br />
+                      Check your spam folder if it doesn't arrive.
+                  </p>
+                  <button
+                      onClick={() => {setStage("input"); setError("")}}
+                      style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "rgba(237,232,220,0.3)",
+                          fontSize: "0.8rem",
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                          marginTop: "1.25rem",
+                          padding: "0.25rem"
+                      }}
+                      onMouseEnter={e => ((e.target as HTMLElement).style.color = "#52E8A8")}
+                      onMouseLeave={e => ((e.target as HTMLElement).style.color = "rgba(237,232,220,0.3")}
+                      >
+                      Wrong email? Go back
+                  </button>
+              </div>
+          )}
+      </div>
 
-                {/* Footer note */}
                 <p style={{
                     textAlign: "center",
                     fontSize: "0.75rem",

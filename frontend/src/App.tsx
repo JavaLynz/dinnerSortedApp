@@ -4,10 +4,11 @@ import IngredientInputPage from "./pages/IngredientInputPage.tsx";
 import ResultsPage from "./pages/Results.tsx";
 import {AuthProvider, useAuth} from "./context/AuthContext.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
+import React from "react";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { session, loading } = useAuth()
-    if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading...</div>
+    if (loading) return <div style={{ minHeight: "100vh", background: "#0F1612"}} />
     if(!session) return <Navigate to="/login" />
     return <>{children}</>
 }
