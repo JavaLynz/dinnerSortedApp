@@ -12,7 +12,7 @@ Built as a full-stack SaaS product and official graduation project (examensarbet
 
 ## ✨ Features
 
-- **AI meal plan generation** — personalised weekly plans via the Claude API (Anthropic)
+- **AI meal plan generation** — personalised weekly plans via the OPEN AI API
 - **Household profiles** — dietary preferences, family size, batch cook preferences
 - **Smart shopping list** — auto-generated from the weekly plan, grouped by category
 - **Sunday Sorted flow** — designed around a weekly planning rhythm, not daily chaos
@@ -27,9 +27,9 @@ Built as a full-stack SaaS product and official graduation project (examensarbet
 |-------|------------|
 | Backend | Java 21, Spring Boot 3, REST API |
 | Frontend | React 18, Vite |
-| AI | Claude API (Anthropic) |
+| AI | OPEN AI API |
 | Auth & Database | Supabase (PostgreSQL) |
-| Backend deploy | Railway |
+| Backend deploy | Render |
 | Frontend deploy | Vercel |
 | Testing | JUnit 5, Mockito (TDD throughout) |
 | CI/CD | GitHub Actions |
@@ -62,7 +62,7 @@ dinnerSortedApp/
 - Java 21+
 - Node.js 18+
 - A [Supabase](https://supabase.com) project
-- An [Anthropic](https://console.anthropic.com) API key
+- An [OPEN AI](https://platform.openai.com/api-keys) API key
 
 ### Backend
 
@@ -93,7 +93,7 @@ Never commit real keys. See `backend/.env.example` and `frontend/.env.example` f
 
 **Backend needs:**
 ```
-ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
 SUPABASE_URL=
 SUPABASE_SERVICE_KEY=
 ```
