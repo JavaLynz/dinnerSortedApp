@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import {useEffect, useState} from "react";
 import axios from "axios";
+import { useProfile } from "../hooks/Useprofile.ts";
+import OnboardingModal from "../components/OnboardingModal.tsx";
 import {supabase} from "../services/SupabaseClient.ts";
 
 
@@ -22,7 +24,7 @@ const COMMON_INGREDIENTS = [
 
     // Veg
     "Broccoli", "Spinach", "Carrots", "Onions", "Garlic",
-    "Tomatoes", "Peppers", "Mushrooms", "Courgette", "Leeks",
+    "Tomatoes", "Peppers", "Mushrooms", "Courgette", "Leek",
     "Spring onions", "Cucumber", "Celery", "Sweetcorn",
     "Frozen peas", "Frozen mixed veg",
 
@@ -47,34 +49,47 @@ const GREETINGS = [
 
 export default function IngredientInputPage() {
     const navigate = useNavigate()
+    const { firstName, people: savedPeople, dietary: savedDietary, loading: profileLoading, needsOnboarding, saveProfile } = useProfile()
     const [selectedIngredients, setSelectedIngredients] = useState<string[]>([...PANTRY_STAPLES])
+    const [quantities, setQuantities] = useState<Record<string, string>>({})
     const [customIngredient, setCustomIngredient] = useState("")
     const [dietary, setDietary] = useState<string[]>([])
+    const [dietaryExpanded, setDietaryExpanded] = useState(false)
     const [days, setDays] = useState(5)
     const [people, setPeople] = useState(4)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
-    const [userName, setUserName] = useState<string | null>(null)
     const greeting = GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
+    const handleLogout = async () => {
+        await supabase.auth.signOut()
+    }
 
     useEffect(() => {
-        supabase.auth.getUser().then(({ data }) => {
-            if (data?.user?.email) {
-                // Use the part before @ as a friendly name fallback
-                const name = data.user.user_metadata?.full_name
-                    || data.user.user_metadata?.name
-                    || data.user.email.split("@")[0]
-                setUserName(name)
-            }
-        })
-    }, [])
+        if (savedDietary?.length) {
+            setDietaryExpanded(false)
+        } else {
+            setDietaryExpanded(true)
+        }
+    }, [savedDietary])
+
+// Sync profile values once loaded
+    useEffect(() => {
+        if (savedPeople) setPeople(savedPeople)
+        if (savedDietary?.length) setDietary(savedDietary)
+    }, [savedPeople, savedDietary])
 
     const toggleIngredient = (ingredient: string) => {
-        setSelectedIngredients(prev =>
-          prev.includes(ingredient)
-            ? prev.filter(d => d !== ingredient)
-            : [...prev, ingredient]
-        )
+        setSelectedIngredients(prev => {
+          if (prev.includes(ingredient)) {
+              setQuantities(q => {
+                  const updated = {...q}
+                  delete updated[ingredient]
+                  return updated
+              })
+              return prev.filter(i => i !== ingredient)
+            }
+          return [...prev, ingredient]
+        })
     }
 
     const toggleDietary = (option: string) => {
@@ -100,12 +115,17 @@ export default function IngredientInputPage() {
         }
         setError("")
         setLoading(true)
+
+        const ingredientsWithQuantities = selectedIngredients.map(i =>
+            quantities[i] ? `${quantities[i]} ${i}` : i
+        )
+
         try {
             const response = await axios.post(
                 `${import.meta.env.VITE_API_BASE_URL}/api/recipes/generate`,
-                { ingredients: selectedIngredients, dietary, days, people }
+                { ingredients: ingredientsWithQuantities, dietary, days, people }
             )
-            navigate("/results", { state: { mealPlan: response.data, ingredients: selectedIngredients, dietary, people } })
+            navigate("/results", { state: { mealPlan: response.data, ingredients: ingredientsWithQuantities, dietary, people } })
         } catch (err) {
             setError("Something went wrong. Please try again.")
         } finally {
@@ -113,8 +133,15 @@ export default function IngredientInputPage() {
         }
     }
 
+    if (profileLoading) {
+        return <div style={{ minHeight: "100vh", background: "#0F1612"}} />
+    }
+
     return (
         <div style={{ background: "#0F1612", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+
+            {needsOnboarding && <OnboardingModal onSave={saveProfile} />}
+
             {/* Nav */}
             <nav style={{
                 background: "#0A1009",
@@ -122,23 +149,43 @@ export default function IngredientInputPage() {
                 padding: "1.25rem 1.5rem",
                 display: "flex",
                 alignItems: "baseline",
+                justifyContent: "space-between",
                 gap: "2px"
             }}>
-                <span style={{
-                    fontFamily: "'Noto Serif', Georgia, serif",
-                    fontStyle: "italic",
-                    fontWeight: 400,
-                    fontSize: "1.15rem",
-                    color: "rgba(237,232,220,0.4)"
-                }}>dinner</span>
-                <span style={{
-                    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-                    fontWeight: 800,
-                    fontSize: "0.9rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    color: "#52E8A8"
-                }}>sorted</span>
+                <a href="https://app.dinnersorted.app" style={{ textDecoration: "none" }}>
+                    <span style={{
+                        fontFamily: "'Noto Serif', Georgia, serif",
+                        fontStyle: "italic",
+                        fontWeight: 400,
+                        fontSize: "1.15rem",
+                        color: "rgba(237,232,220,0.4)"
+                    }}>dinner</span>
+                    <span style={{
+                        fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                        fontWeight: 800,
+                        fontSize: "0.9rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                        color: "#52E8A8"
+                    }}>sorted</span>
+                </a>
+
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        background: "transparent",
+                        border: "1px solid rgba(200,185,122,0.2)",
+                        color: "rgba(237,232,220,0.5)",
+                        padding: "0.4rem 1 rem",
+                        borderRadius: "6px",
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                        fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+                    }}
+                >
+                    Sign out
+                </button>
+
             </nav>
 
             <div style={{ maxWidth: "680px", margin: "0 auto", padding: "2rem 1.5rem 4rem" }}>
@@ -162,8 +209,8 @@ export default function IngredientInputPage() {
                         letterSpacing: "-0.02em",
                         marginBottom: "0.6rem"
                     }}>
-                        {userName
-                            ? <>What's in your kitchen, <span style={{ color: "#52E8A8" }}>{userName}?</span></>
+                        {firstName
+                            ? <>What's in your kitchen, <span style={{ color: "#52E8A8" }}>{firstName}?</span></>
                             : <>What's in your kitchen this week?</>
                         }
                     </h1>
@@ -180,13 +227,35 @@ export default function IngredientInputPage() {
                 <Section label="What's in your fridge & freezer">
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                         {COMMON_INGREDIENTS.map(ingredient => (
-                            <Chip
-                                key={ingredient}
-                                label={ingredient}
-                                selected={selectedIngredients.includes(ingredient)}
-                                onClick={() => toggleIngredient(ingredient)}
-                                variant="teal"
-                            />
+                            <div key={ingredient} style={{ display: "flex", alignItems: "center", gap: "0.4 rem" }}>
+                                <Chip
+                                    label={ingredient}
+                                    selected={selectedIngredients.includes(ingredient)}
+                                    onClick={() => toggleIngredient(ingredient)}
+                                    variant="teal"
+                                />
+                                {selectedIngredients.includes(ingredient) && (
+                                    <input
+                                        type="text"
+                                        value={quantities[ingredient] || ""}
+                                        onChange={e => setQuantities(prev => ({ ...prev, [ingredient]: e.target.value}))}
+                                        placeholder="qty"
+                                        style={{
+                                            width: "58px",
+                                            background: "#0A1009",
+                                            border: "1px solid rgba(82,232,168,0.2)",
+                                            borderRadius: "0.5rem",
+                                            padding: "0.3rem 0.5rem",
+                                            fontSize: "0.75rem",
+                                            color: "#EDE8DC",
+                                            fontFamily: "inherit",
+                                            outline: "none"
+                                        }}
+                                        onFocus={e => (e.target.style.borderColor = "rgba(82,232,168,0.55)")}
+                                        onBlur={e => (e.target.style.borderColor = "rgba(82,232,168,0.2)")}
+                                    />
+                                )}
+                            </div>
                         ))}
                     </div>
                 </Section>
@@ -277,17 +346,62 @@ export default function IngredientInputPage() {
 
                 {/* Dietary */}
                 <Section label="Dietary requirements">
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                        {DIETARY_OPTIONS.map(option => (
-                            <Chip
-                                key={option}
-                                label={option}
-                                selected={dietary.includes(option)}
-                                onClick={() => toggleDietary(option)}
-                                variant="teal"
-                            />
-                        ))}
-                    </div>
+                    {dietary.length > 0 && !dietaryExpanded ? (
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            <p style={{
+                                fontSize: "0.85rem",
+                                color: "#52E8A8"
+                            }}>
+                                {dietary.join(", ")}
+                            </p>
+                            <button
+                                onClick={() => setDietaryExpanded(true)}
+                                style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    color: "rgba(237,232,220,0.4)",
+                                    fontSize: "0.78rem",
+                                    cursor: "pointer",
+                                    fontFamily: "inherit",
+                                    textDecoration: "underline"
+                                }}
+                            >
+                                Edit
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                                {DIETARY_OPTIONS.map(option => (
+                                    <Chip
+                                        key={option}
+                                        label={option}
+                                        selected={dietary.includes(option)}
+                                        onClick={() => toggleDietary(option)}
+                                        variant="teal"
+                                    />
+                                ))}
+                            </div>
+                            {dietary.length > 0 && (
+                                <button
+                                    onClick={() => setDietaryExpanded(false)}
+                                    style={{
+                                        background: "transparent",
+                                        border: "none",
+                                        color: "rgba(237,232,220,0.4)",
+                                        fontSize: "0.78rem",
+                                        cursor: "pointer",
+                                        fontFamily: "inherit",
+                                        textDecoration: "underline",
+                                        marginTop: "0.5rem",
+                                        padding: 0
+                                    }}
+                                >
+                                    Done
+                                </button>
+                            )}
+                        </>
+                    )}
                 </Section>
 
                 {/* Days & people */}
