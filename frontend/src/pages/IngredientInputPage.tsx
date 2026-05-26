@@ -54,7 +54,7 @@ export default function IngredientInputPage() {
     const [quantities, setQuantities] = useState<Record<string, string>>({})
     const [customIngredient, setCustomIngredient] = useState("")
     const [dietary, setDietary] = useState<string[]>([])
-    const [dietaryExpanded, setDietaryExpanded] = useState(false)
+    const [dietaryExpanded, setDietaryExpanded] = useState(true)
     const [days, setDays] = useState(5)
     const [people, setPeople] = useState(4)
     const [loading, setLoading] = useState(false)
@@ -65,17 +65,11 @@ export default function IngredientInputPage() {
     }
 
     useEffect(() => {
-        if (savedDietary?.length) {
-            setDietaryExpanded(false)
-        } else {
-            setDietaryExpanded(true)
-        }
-    }, [savedDietary])
-
-// Sync profile values once loaded
-    useEffect(() => {
         if (savedPeople) setPeople(savedPeople)
-        if (savedDietary?.length) setDietary(savedDietary)
+        if (savedDietary?.length) {
+            setDietary(savedDietary)
+            setDietaryExpanded(false)
+        }
     }, [savedPeople, savedDietary])
 
     const toggleIngredient = (ingredient: string) => {
@@ -176,7 +170,7 @@ export default function IngredientInputPage() {
                         background: "transparent",
                         border: "1px solid rgba(200,185,122,0.2)",
                         color: "rgba(237,232,220,0.5)",
-                        padding: "0.4rem 1 rem",
+                        padding: "0.4rem 1rem",
                         borderRadius: "6px",
                         fontSize: "0.8rem",
                         cursor: "pointer",
@@ -227,7 +221,7 @@ export default function IngredientInputPage() {
                 <Section label="What's in your fridge & freezer">
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                         {COMMON_INGREDIENTS.map(ingredient => (
-                            <div key={ingredient} style={{ display: "flex", alignItems: "center", gap: "0.4 rem" }}>
+                            <div key={ingredient} style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                                 <Chip
                                     label={ingredient}
                                     selected={selectedIngredients.includes(ingredient)}

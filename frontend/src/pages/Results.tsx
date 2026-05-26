@@ -603,29 +603,37 @@ export default function ResultsPage() {
                             borderRadius: "1rem",
                             padding: "1.5rem"
                         }}>
-                            {sundaySession.split("\n").filter(l => l.trim()).map((line, i) => {
-                                const tagMatch = line.match(/\[(OVEN|HOB|PREP|COOL\/STORE|DONE)\]/)
-                                const tag = tagMatch?.[1]
-                                const tagColors: Record<string, string> = {
-                                    OVEN: "#FC7C78", HOB: "#C8B97A", PREP: "#52E8A8",
-                                    "COOL/STORE": "rgba(82,232,168,0.5)", DONE: "#52E8A8"
-                                }
-                                return (
-                                    <div key={i} style={{ display: "flex", gap: "0.75rem", marginBottom: "0.65rem", alignItems: "flex-start" }}>
-                                        {tag && (
-                                            <span style={{
-                                                fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.08em",
-                                                color: tagColors[tag], border: `1px solid ${tagColors[tag]}`,
-                                                borderRadius: "0.3rem", padding: "0.15rem 0.4rem",
-                                                flexShrink: 0, marginTop: "0.2rem", opacity: 0.85
-                                            }}>{tag}</span>
-                                        )}
-                                        <p style={{ fontSize: "0.83rem", color: "rgba(237,232,220,0.7)", lineHeight: 1.6, margin: 0 }}>
-                                            {line.replace(/\[(OVEN|HOB|PREP|COOL\/STORE|DONE)\]/, "").trim()}
-                                        </p>
-                                    </div>
-                                )
-                            })}
+                            {sundaySession
+                                .split(/(?=\[\w+(?:\/\w+)?\])/)
+                                .filter(line => line.trim())
+                                .map((line, i) => {
+                                    const tagMatch = line.match(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)\]/)
+                                    const tag = tagMatch?.[1]
+                                    const tagColors: Record<string, string> = {
+                                        OVEN: "#FC7C78",
+                                        HOB: "#C8B97A",
+                                        PREP: "#52E8A8",
+                                        "COOL/STORE": "rgba(82,232,168,0.5)",
+                                        DONE: "#52E8A8",
+                                        FREEZE: "#818cf8"
+                                    }
+                                    return (
+                                        <div key={i} style={{ display: "flex", gap: "0.75rem", marginBottom: "0.65rem", alignItems: "flex-start" }}>
+                                            {tag && (
+                                                <span style={{
+                                                    fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.08em",
+                                                    color: tagColors[tag], border: `1px solid ${tagColors[tag]}`,
+                                                    borderRadius: "0.3rem", padding: "0.15rem 0.4rem",
+                                                    flexShrink: 0, marginTop: "0.2rem", opacity: 0.85,
+                                                    whiteSpace: "nowrap"
+                                                }}>{tag}</span>
+                                            )}
+                                            <p style={{ fontSize: "0.83rem", color: "rgba(237,232,220,0.7)", lineHeight: 1.6, margin: 0 }}>
+                                                {line.replace(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)\]\s*/, "").trim()}
+                                            </p>
+                                        </div>
+                                    )
+                                })}
                         </div>
                     </div>
                 )}

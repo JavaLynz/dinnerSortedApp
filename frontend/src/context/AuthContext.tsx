@@ -14,6 +14,13 @@ export function AuthProvider({ children }: { children: React.ReactNode}) {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        // Dev bypass — skip auth entirely
+        if (import.meta.env.VITE_DEV_SKIP_AUTH === 'true') {
+            setSession({ user: { id: 'dev-user', email: 'dev@local.com' } } as any)
+            setLoading(false)
+            return
+        }
+
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session)
             setLoading(false)

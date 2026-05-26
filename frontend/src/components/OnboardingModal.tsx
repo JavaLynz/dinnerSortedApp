@@ -83,7 +83,7 @@ export default function OnboardingModal({ onSave }: OnboardingModalProps) {
                 </div>
 
                 <h2 style={{
-                    fontFamily: "'Notot Serif', Georgia, serif",
+                    fontFamily: "'Noto Serif', Georgia, serif",
                     fontSize: "1.35rem",
                     fontWeight: 600,
                     color: "#EDE8DC",

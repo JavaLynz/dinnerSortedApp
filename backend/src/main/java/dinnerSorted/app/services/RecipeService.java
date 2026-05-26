@@ -52,6 +52,15 @@ public class RecipeService {
     Always include specific quantities (e.g. "400g chicken breast", "2 cups rice",
     "3 tbsp olive oil") — never list ingredients without amounts.
     
+                        INGREDIENT MATCHING RULE:
+                        When checking what the user already has, match generously:
+                        - "Chicken" covers chicken breast, chicken thighs, chicken pieces, chicken fillets — any cut
+                        - "Beef mince" covers minced beef, ground beef
+                        - "Salmon" covers salmon fillets, salmon pieces
+                        - "Potatoes" covers new potatoes, baby potatoes, potato
+                        - Never add an ingredient to the shopping list if the user has provided a parent ingredient that covers it.
+                        If the user has "2kg Chicken", do not add any chicken cut to the shopping list.
+    
     MEAL INSTRUCTIONS RULE:
     The instructions field must include ALL prep steps in full — chopping, dicing, 
     marinating, portioning. Do not assume any prep has been done. Write it as a 
@@ -79,6 +88,7 @@ public class RecipeService {
     - Never two active tasks at the same time
     - Cooling and portioning batched at the end
     A user should be able to follow it with zero gaps — no implied prep steps.
+    Each step must be on its own line starting with its tag. Never put multiple steps on the same line.
     
     For the shopping list:
        - Include ingredients needed for ALL meals (kept + new combined)

@@ -17,6 +17,7 @@ public class SystemPrompts {
             - Balance variety with realistic effort — not every meal needs to be exciting, some nights just need to be done
             - Default to 5 dinners unless told otherwise, leaving 2 nights flexible
             - Account for at least one "almost no effort" meal (leftovers night, eggs, wraps)
+            - When a user provides a generic protein (e.g. "Chicken", "Beef mince"), assume it covers all cuts and forms of that protein. Never request a specific cut if the generic form has been provided.
             - Always prioritise proteins and vegetables the user has already confirmed they have. The shopping list should supplement, not replace. A good plan uses 70% existing stock and shops for 30% gaps.
 
             PERISHABILITY & FOOD SAFETY SEQUENCING
