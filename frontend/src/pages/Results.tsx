@@ -8,7 +8,7 @@ interface Meal {
     day: number
     name: string
     label: string
-    effortLevel: string
+    effortLabel: string
     ingredients: string[]
     instructions: string
     dinnertimeInstruction: string
@@ -411,7 +411,7 @@ export default function ResultsPage() {
                 {activeTab === "meals" && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                         {meals.map((meal, index) => {
-                            const effort = EFFORT_COLORS[meal.effortLevel] || EFFORT_COLORS["Easy"]
+                            const effort = EFFORT_COLORS[meal.effortLabel] || EFFORT_COLORS["Easy"]
                             const liked = isLiked(meal)
                             const isSelected = selectedDays.has(meal.day)
                             const isThisLoading = regenerating && isSelected
@@ -473,7 +473,7 @@ export default function ResultsPage() {
                                                 border: `1px solid ${effort.border}`,
                                                 fontWeight: 500
                                             }}>
-                                                {meal.effortLevel}
+                                                {meal.effortLabel}
                                             </span>
                                             {meal.prepTime && (
                                                 <span style={{

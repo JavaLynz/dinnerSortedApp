@@ -8,7 +8,7 @@ interface Meal {
     day: number
     name: string
     label: string
-    effortLevel: string
+    effortLabel: string
     ingredients: string[]
     instructions: string
     dinnertimeInstruction: string
@@ -438,7 +438,7 @@ export default function ProfilePage() {
                         ) : (
                             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                                 {favourites.map(meal => {
-                                    const effort = EFFORT_COLORS[meal.effortLevel] || EFFORT_COLORS["Easy"]
+                                    const effort = EFFORT_COLORS[meal.effortLabel] || EFFORT_COLORS["Easy"]
                                     const isRemoving = removingMeal === meal.name
                                     return (
                                         <div
@@ -477,7 +477,7 @@ export default function ProfilePage() {
                                                         border: `1px solid ${effort.border}`,
                                                         fontWeight: 500
                                                     }}>
-                                                        {meal.effortLevel}
+                                                        {meal.effortLabel}
                                                     </span>
                                                     <span style={{
                                                         fontSize: "0.7rem",
