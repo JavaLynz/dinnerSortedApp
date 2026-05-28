@@ -279,7 +279,7 @@ export default function ProfilePage() {
                                 style={{ ...inputStyle, appearance: "none" as const }}
                             >
                                 {[1,2,3,4,5,6,7,8].map(p => (
-                                    <option key={p} value={p}>{p} {p === 1 ? "person" : "people"}</option>
+                                    <option key={p} value={p}>{p} {p === 1 ? " person" : " people"}</option>
                                 ))}
                             </select>
                         </div>

@@ -69,7 +69,6 @@ public class RecipeService {
             — Typical weeknight cooking time: %s
             — Sunday prep window: %s
             
-            "prepTime": "total active prep + cook time as a short string e.g. '20 min' or '10 min prep + 35 min oven'"
 
             NIGHTS WITH UNDER 30 MINUTES TO GET DINNER ON THE TABLE: %s
             These nights must have Easy meals that require minimal active cooking.
@@ -140,6 +139,7 @@ public class RecipeService {
                   "name": "meal name",
                   "label": "Fussy eater approved or Whole family",
                   "effortLevel": "Easy, Medium or Needs focus",
+                  "prepTime": "total active prep + cook time as a short string e.g. '20 min' or '10 min prep + 35 min oven'",
                   "ingredients": ["400g chicken breast", "2 cups rice"],
                   "instructions": "complete cook-from-fridge instructions",
                   "dinnertimeInstruction": "starts with verb, specific time, zero decisions",
@@ -165,6 +165,7 @@ public class RecipeService {
                 request.days(),
                 request.people(),
                 sundayStr
+
         ));
 
         // Tonight's dinner — optional Tomorrow From Tonight section

@@ -744,10 +744,10 @@ export default function ResultsPage() {
                             padding: "1.5rem"
                         }}>
                             {sundaySession
-                                .split(/(?=\[\w+(?:\/\w+)?)/)
+                                .split(/(?=\[\w+(?:\/\w+)?\])/)
                                 .filter(line => line.trim())
                                 .map((line, i) => {
-                                    const tagMatch = line.match(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)/)
+                                    const tagMatch = line.match(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)\]/)
                                     const tag = tagMatch?.[1]
                                     const tagColors: Record<string, string> = {
                                         OVEN: "#FC7C78",
@@ -769,7 +769,7 @@ export default function ResultsPage() {
                                                 }}>{tag}</span>
                                             )}
                                             <p style={{ fontSize: "0.83rem", color: "rgba(237,232,220,0.7)", lineHeight: 1.6, margin: 0 }}>
-                                                {line.replace(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)\s*/, "").trim()}
+                                                {line.replace(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)\]\s*/, "").trim()}
                                             </p>
                                         </div>
                                     )
