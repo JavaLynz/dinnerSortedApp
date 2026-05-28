@@ -24,14 +24,17 @@ export default function LoginPage() {
                     emailRedirectTo: window.location.origin
                 }
             })
-            if (error) throw error
+            if (error) {
+                setError(error.message)
+            } else {
                 setStage("sent")
-            } catch (err: any) {
-                setError(err.message)
-            } finally {
-                setLoading(false)
             }
+        } catch (err: any) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
         }
+    }
 
     return (
         <div style={{
@@ -180,7 +183,7 @@ export default function LoginPage() {
                                     fontSize: "0.95rem",
                                     fontWeight: 700,
                                     fontFamily: "inherit",
-                                    cursor: loading ? "not-allowed" : "pointer",
+                                    cursor: loading ? "wait" : "pointer",
                                     boxShadow: loading ? "none" : "0 0 20px rgba(82,232,168,0.2)",
                                     transition: "opacity 0.2s",
                                     marginBottom: "1rem",

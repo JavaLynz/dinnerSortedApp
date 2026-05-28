@@ -73,6 +73,15 @@ export default function IngredientInputPage() {
         }
     }, [savedPeople, savedDietary])
 
+    useEffect(() => {
+        if (freezerProteins?.length) {
+            setSelectedIngredients(prev => {
+                const toAdd = freezerProteins.filter(p => !prev.includes(p))
+                return toAdd.length ? [...prev, ...toAdd] : prev
+            })
+        }
+    }, [freezerProteins])
+
     const toggleIngredient = (ingredient: string) => {
         setSelectedIngredients(prev => {
           if (prev.includes(ingredient)) {
@@ -110,6 +119,7 @@ export default function IngredientInputPage() {
         }
         setError("")
         setLoading(true)
+        document.body.style.cursor = "wait"
 
         const ingredientsWithQuantities = selectedIngredients.map(i =>
             quantities[i] ? `${quantities[i]} ${i}` : i
@@ -152,6 +162,7 @@ export default function IngredientInputPage() {
             setError("Something went wrong. Please try again.")
         } finally {
             setLoading(false)
+            document.body.style.cursor = ""
         }
     }
 
@@ -174,7 +185,7 @@ export default function IngredientInputPage() {
                 justifyContent: "space-between",
                 gap: "2px"
             }}>
-                <a href="https://app.dinnersorted.app" style={{ textDecoration: "none" }}>
+                <a href="https://app.dinnersorted.app" style={{textDecoration: "none"}}>
                     <span style={{
                         fontFamily: "'Noto Serif', Georgia, serif",
                         fontStyle: "italic",
@@ -192,28 +203,45 @@ export default function IngredientInputPage() {
                     }}>sorted</span>
                 </a>
 
-                <button
-                    onClick={handleLogout}
-                    style={{
-                        background: "transparent",
-                        border: "1px solid rgba(200,185,122,0.2)",
-                        color: "rgba(237,232,220,0.5)",
-                        padding: "0.4rem 1rem",
-                        borderRadius: "6px",
-                        fontSize: "0.8rem",
-                        cursor: "pointer",
-                        fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
-                    }}
-                >
-                    Sign out
-                </button>
+                <div style={{display: "flex", gap: "0.6rem", alignItems: "center"}}>
+                    <button
+                        onClick={() => navigate("/profile")}
+                        style={{
+                            background: "transparent",
+                            border: "1px solid rgba(200,185,122,0.2)",
+                            color: "rgba(237,232,220,0.5)",
+                            padding: "0.4rem 1rem",
+                            borderRadius: "6px",
+                            fontSize: "0.8rem",
+                            cursor: "pointer",
+                            fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+                        }}
+                    >
+                        Profile
+                    </button>
+                    <button
+                        onClick={handleLogout}
+                        style={{
+                            background: "transparent",
+                            border: "1px solid rgba(200,185,122,0.2)",
+                            color: "rgba(237,232,220,0.5)",
+                            padding: "0.4rem 1rem",
+                            borderRadius: "6px",
+                            fontSize: "0.8rem",
+                            cursor: "pointer",
+                            fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+                        }}
+                    >
+                        Sign out
+                    </button>
+                </div>
 
             </nav>
 
-            <div style={{ maxWidth: "680px", margin: "0 auto", padding: "2rem 1.5rem 4rem" }}>
+            <div style={{maxWidth: "680px", margin: "0 auto", padding: "2rem 1.5rem 4rem"}}>
 
                 {/* Welcome block */}
-                <div style={{ marginBottom: "2.5rem" }}>
+                <div style={{marginBottom: "2.5rem"}}>
                     <p style={{
                         fontFamily: "'Noto Serif', Georgia, serif",
                         fontStyle: "italic",
@@ -231,7 +259,7 @@ export default function IngredientInputPage() {
                         letterSpacing: "-0.02em",
                         marginBottom: "0.6rem"
                     }}>
-                        {firstName
+                    {firstName
                             ? <>What's in your kitchen, <span style={{ color: "#52E8A8" }}>{firstName}?</span></>
                             : <>What's in your kitchen this week?</>
                         }
@@ -463,7 +491,7 @@ export default function IngredientInputPage() {
                         fontSize: "1rem",
                         fontWeight: 700,
                         fontFamily: "inherit",
-                        cursor: loading ? "not-allowed" : "pointer",
+                        cursor: loading ? "wait" : "pointer",
                         letterSpacing: "0.02em",
                         boxShadow: loading ? "none" : "0 0 24px rgba(82,232,168,0.25)",
                         transition: "opacity 0.2s, box-shadow 0.2s"

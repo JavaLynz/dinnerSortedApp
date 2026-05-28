@@ -13,12 +13,19 @@ interface Meal {
     instructions: string
     dinnertimeInstruction: string
     missingIngredients: string[]
+    prepTime: string
 }
 
 interface MealPlan {
     meals: Meal[]
     shoppingList: string[]
     sundaySession: string
+    tomorrowFromTonight?: TomorrowMeal[]
+}
+
+interface TomorrowMeal {
+    name: string
+    method: string
 }
 
 interface LocationState {
@@ -43,15 +50,7 @@ const EFFORT_COLORS: Record<string, { bg: string; color: string; border: string 
 }
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-const LIKED_KEY = "ds_liked_meals"
 
-// ── localStorage helpers ─────────────────────────────────────────
-function getLikedMeals(): Meal[] {
-    try { return JSON.parse(localStorage.getItem(LIKED_KEY) || "[]") } catch { return [] }
-}
-function saveLikedMeals(meals: Meal[]) {
-    localStorage.setItem(LIKED_KEY, JSON.stringify(meals))
-}
 
 // ── Component ────────────────────────────────────────────────────
 export default function ResultsPage() {
@@ -74,7 +73,23 @@ export default function ResultsPage() {
     const [meals, setMeals] = useState<Meal[]>(initial?.meals || [])
     const [shoppingList, setShoppingList] = useState<string[]>(initial?.shoppingList || [])
     const [sundaySession, setSundaySession] = useState<string>(initial?.sundaySession || "")
-    const [likedMeals, setLikedMeals] = useState<Meal[]>(getLikedMeals())
+    const [likedMeals, setLikedMeals] = useState<Meal[]>([])
+    const [tomorrowFromTonight, setTomorrowFromTonight] = useState<TomorrowMeal[]>(
+        initial?.tomorrowFromTonight || []
+    )
+
+    useEffect(() => {
+        async function loadFavourites() {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+            const { data } = await supabase
+                .from("favourite_meals")
+                .select("meal")
+                .eq("user_id", user.id)
+            setLikedMeals(data?.map(row => row.meal) ?? [])
+        }
+        loadFavourites()
+    }, [])
 
     // Set of day numbers selected for regeneration
     const [selectedDays, setSelectedDays] = useState<Set<number>>(new Set())
@@ -92,14 +107,31 @@ export default function ResultsPage() {
     }, [])
 
     // ── Like / unlike ────────────────────────────────────────────
-    const toggleLike = (meal: Meal) => {
-        const already = likedMeals.some(m => m.name === meal.name)
-        const updated = already
-            ? likedMeals.filter(m => m.name !== meal.name)
-            : [...likedMeals, meal]
-        setLikedMeals(updated)
-        saveLikedMeals(updated)
+    const toggleLike = async (meal: Meal) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+
+            const already = likedMeals.some(m => m.name === meal.name)
+
+            if (already) {
+                setLikedMeals(prev => prev.filter(m => m.name !== meal.name))
+                await supabase
+                    .from("favourite_meals")
+                    .delete()
+                    .eq("user_id", user.id)
+                    .eq("meal->>name", meal.name)
+            } else {
+                setLikedMeals(prev => [...prev, meal])
+                await supabase
+                    .from("favourite_meals")
+                    .insert({ user_id: user.id, meal })
+            }
+        } catch (e) {
+            console.error("Failed to update favourite:", e)
+        }
     }
+
     const isLiked = (meal: Meal) => likedMeals.some(m => m.name === meal.name)
 
     // ── Toggle day selection ─────────────────────────────────────
@@ -117,6 +149,7 @@ export default function ResultsPage() {
     const regenerateSelected = async () => {
         if (selectedDays.size === 0) return
         setRegenerating(true)
+        document.body.style.cursor = "wait"
 
         const keptMeals = meals.filter(m => !selectedDays.has(m.day))
         const excludeNames = meals.map(m => m.name)
@@ -151,18 +184,21 @@ export default function ResultsPage() {
             setMeals(merged)
             setShoppingList(res.data.shoppingList)
             setSundaySession(res.data.sundaySession)
+            setTomorrowFromTonight(res.data.tomorrowFromTonight || [])
             setSaved(false)
             clearSelection()
         } catch (e) {
             console.error("Regenerate failed", e)
         } finally {
             setRegenerating(false)
+            document.body.style.cursor = ""
         }
     }
 
     // ── Regenerate whole week ────────────────────────────────────
     const regenerateAll = async () => {
         setRegeneratingAll(true)
+        document.body.style.cursor = "wait"
         clearSelection()
         try {
             const res = await axios.post(
@@ -183,11 +219,13 @@ export default function ResultsPage() {
             setMeals(res.data.meals)
             setShoppingList(res.data.shoppingList)
             setSundaySession(res.data.sundaySession)
+            setTomorrowFromTonight(res.data.tomorrowFromTonight || [])
             setSaved(false)
         } catch (e) {
             console.error("Regenerate all failed", e)
         } finally {
             setRegeneratingAll(false)
+            document.body.style.cursor = ""
         }
     }
 
@@ -437,6 +475,19 @@ export default function ResultsPage() {
                                             }}>
                                                 {meal.effortLevel}
                                             </span>
+                                            {meal.prepTime && (
+                                                <span style={{
+                                                    fontSize: "0.72rem",
+                                                    padding: "0.2rem 0.65rem",
+                                                    borderRadius: "2rem",
+                                                    background: "rgba(237,232,220,0.05)",
+                                                    color: "rgba(237,232,220,0.4)",
+                                                    border: "1px solid rgba(237,232,220,0.1)",
+                                                    fontWeight: 500
+                                                }}>
+                                                    ⏱ {meal.prepTime}
+                                                </span>
+                                            )}
                                             <span style={{
                                                 fontSize: "0.72rem",
                                                 color: "rgba(237,232,220,0.3)",
@@ -599,6 +650,60 @@ export default function ResultsPage() {
                                 </div>
                             )
                         })}
+                        {tomorrowFromTonight.length > 0 && (
+                            <div style={{
+                                marginTop: "1.5rem",
+                                background: "#1E2B1F",
+                                border: "1px solid rgba(200,185,122,0.2)",
+                                borderRadius: "1rem",
+                                padding: "1.25rem"
+                            }}>
+                                <p style={{
+                                    fontSize: "0.68rem",
+                                    fontWeight: 700,
+                                    letterSpacing: "0.12em",
+                                    textTransform: "uppercase",
+                                    color: "#C8B97A",
+                                    marginBottom: "0.75rem"
+                                }}>
+                                    Tonight's leftovers become →
+                                </p>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                                    {tomorrowFromTonight.map((option, i) => (
+                                        <div key={i} style={{
+                                            display: "flex",
+                                            gap: "0.75rem",
+                                            alignItems: "flex-start"
+                                        }}>
+                                            <span style={{
+                                                color: "#52E8A8",
+                                                fontSize: "0.8rem",
+                                                flexShrink: 0,
+                                                marginTop: "0.1rem"
+                                                }}>
+                                                →
+                                            </span>
+                                            <div>
+                                                <span style={{
+                                                    fontSize: "0.88rem",
+                                                    fontWeight: 600,
+                                                    color: "#EDE8DC"
+                                                }}>
+                                                    {option.name}
+                                                </span>
+                                                <span style={{
+                                                    fontSize: "0.83rem",
+                                                    color: "rgba(237,232,220,0.45)",
+                                                    marginLeft: "0.5rem"
+                                                }}>
+                                                    — {option.method}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -639,10 +744,10 @@ export default function ResultsPage() {
                             padding: "1.5rem"
                         }}>
                             {sundaySession
-                                .split(/(?=\[\w+(?:\/\w+)?\])/)
+                                .split(/(?=\[\w+(?:\/\w+)?)/)
                                 .filter(line => line.trim())
                                 .map((line, i) => {
-                                    const tagMatch = line.match(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)\]/)
+                                    const tagMatch = line.match(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)/)
                                     const tag = tagMatch?.[1]
                                     const tagColors: Record<string, string> = {
                                         OVEN: "#FC7C78",
@@ -664,7 +769,7 @@ export default function ResultsPage() {
                                                 }}>{tag}</span>
                                             )}
                                             <p style={{ fontSize: "0.83rem", color: "rgba(237,232,220,0.7)", lineHeight: 1.6, margin: 0 }}>
-                                                {line.replace(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)\]\s*/, "").trim()}
+                                                {line.replace(/^\[(OVEN|HOB|PREP|COOL\/STORE|DONE|FREEZE)\s*/, "").trim()}
                                             </p>
                                         </div>
                                     )

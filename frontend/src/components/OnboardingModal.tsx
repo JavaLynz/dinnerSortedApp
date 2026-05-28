@@ -211,7 +211,7 @@ export default function OnboardingModal({ onSave }: OnboardingModalProps) {
                             <label style={labelStyle}>How many people are you feeding?</label>
                             <select value={people} onChange={e => setPeople(Number(e.target.value))} style={selectStyle()}>
                                 {[1,2,3,4,5,6,7,8].map(p => (
-                                    <option key={p} value={p}>{p} {p === 1 ? "person" : "people"}</option>
+                                    <option key={p} value={p}>{p} {p === 1 ? " person" : " people"}</option>
                                 ))}
                             </select>
                         </div>
@@ -369,7 +369,7 @@ export default function OnboardingModal({ onSave }: OnboardingModalProps) {
                             fontSize: "0.95rem",
                             fontWeight: 700,
                             fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-                            cursor: loading ? "not-allowed" : "pointer",
+                            cursor: loading ? "wait" : "pointer",
                             boxShadow: loading ? "none" : "0 0 20px rgba(82,232,168,0.2)",
                             letterSpacing: "0.02em",
                             transition: "opacity 0.2s",

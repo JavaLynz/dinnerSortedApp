@@ -63,7 +63,7 @@ export function useProfile(): UseProfileReturn {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        await supabase.from("profiles").upsert({
+        const { error } = await supabase.from("profiles").upsert({
             id: user.id,
             first_name: data.name.trim(),
             people: data.people,
@@ -76,6 +76,11 @@ export function useProfile(): UseProfileReturn {
             freezer_proteins: data.freezerProteins,
         })
 
+        if (error) {
+            console.error("Failed to save profile:", error)
+            return
+        }
+
         setFirstName(data.name.trim())
         setPeople(data.people)
         setDietary(data.dietary)
@@ -87,6 +92,8 @@ export function useProfile(): UseProfileReturn {
         setFreezerProteins(data.freezerProteins)
         setNeedsOnboarding(false)
     }
+
+
 
     return {
         firstName,
@@ -102,4 +109,5 @@ export function useProfile(): UseProfileReturn {
         needsOnboarding,
         saveProfile
     }
+
 }

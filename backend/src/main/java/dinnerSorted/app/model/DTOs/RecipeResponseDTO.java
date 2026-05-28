@@ -16,7 +16,8 @@ public record RecipeResponseDTO(
             List<String> ingredients,
             String instructions,
             String dinnertimeInstruction,
-            List<String> missingIngredients
+            List<String> missingIngredients,
+            String prepTime
     ) {}
 
     public record TomorrowMealDTO(String name, String method){}

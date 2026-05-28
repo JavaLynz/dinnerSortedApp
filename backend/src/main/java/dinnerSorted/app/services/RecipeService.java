@@ -68,6 +68,8 @@ public class RecipeService {
             — Number of people: %d
             — Typical weeknight cooking time: %s
             — Sunday prep window: %s
+            
+            "prepTime": "total active prep + cook time as a short string e.g. '20 min' or '10 min prep + 35 min oven'"
 
             NIGHTS WITH UNDER 30 MINUTES TO GET DINNER ON THE TABLE: %s
             These nights must have Easy meals that require minimal active cooking.

@@ -5,6 +5,7 @@ import ResultsPage from "./pages/Results.tsx";
 import {AuthProvider, useAuth} from "./context/AuthContext.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import React from "react";
+import ProfilePage from "./pages/ProfilePage.tsx";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { session, loading } = useAuth()
@@ -27,6 +28,7 @@ function App() {
                     <Route
                         path="/results"
                         element={<ProtectedRoute><ResultsPage /></ProtectedRoute>} />
+                    <Route path="/profile" element={<ProfilePage />} />
                 </Routes>
             </BrowserRouter>
         </AuthProvider>
