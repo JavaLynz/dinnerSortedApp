@@ -21,6 +21,20 @@ public record RecipeRequestDTO (
 
         List<String> exclude,
 
-        List<String> keep
+        List<String> keep,
+
+        String chaoticNights,
+
+        String sundayWindow,
+
+        String fussyEaterNotes,
+
+        List<String>busyNights,
+
+        String weeknightTime,
+
+        List<String> freezerProteins,
+
+        String tonightsDinner
 
 ) {}

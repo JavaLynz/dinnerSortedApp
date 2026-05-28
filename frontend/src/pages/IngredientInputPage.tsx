@@ -49,7 +49,8 @@ const GREETINGS = [
 
 export default function IngredientInputPage() {
     const navigate = useNavigate()
-    const { firstName, people: savedPeople, dietary: savedDietary, loading: profileLoading, needsOnboarding, saveProfile } = useProfile()
+    const { firstName, people: savedPeople, dietary: savedDietary, fussyEaterNotes, busyNights, chaoticNights,
+        sundayWindow, weeknightTime, freezerProteins, loading: profileLoading, needsOnboarding, saveProfile } = useProfile()
     const [selectedIngredients, setSelectedIngredients] = useState<string[]>([...PANTRY_STAPLES])
     const [quantities, setQuantities] = useState<Record<string, string>>({})
     const [customIngredient, setCustomIngredient] = useState("")
@@ -117,9 +118,36 @@ export default function IngredientInputPage() {
         try {
             const response = await axios.post(
                 `${import.meta.env.VITE_API_BASE_URL}/api/recipes/generate`,
-                { ingredients: ingredientsWithQuantities, dietary, days, people }
+                {
+                    ingredients: ingredientsWithQuantities,
+                    dietary,
+                    days,
+                    people,
+                    fussyEaterNotes,
+                    busyNights,
+                    chaoticNights,
+                    sundayWindow,
+                    weeknightTime,
+                    freezerProteins,
+                    exclude: [],
+                    keep: [],
+                    tonightsDinner: null
+                }
             )
-            navigate("/results", { state: { mealPlan: response.data, ingredients: ingredientsWithQuantities, dietary, people } })
+            navigate("/results", {
+                state: {
+                    mealPlan: response.data,
+                    ingredients: ingredientsWithQuantities,
+                    dietary,
+                    people,
+                    fussyEaterNotes,
+                    busyNights,
+                    chaoticNights,
+                    sundayWindow,
+                    weeknightTime,
+                    freezerProteins
+                }
+            })
         } catch (err) {
             setError("Something went wrong. Please try again.")
         } finally {

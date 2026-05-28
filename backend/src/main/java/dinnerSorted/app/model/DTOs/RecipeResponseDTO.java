@@ -3,11 +3,12 @@ package dinnerSorted.app.model.DTOs;
 import java.util.List;
 
 public record RecipeResponseDTO(
-        List<Meal> meals,
+        List<MealDTO> meals,
         List<String> shoppingList,
-        String sundaySession
+        String sundaySession,
+        List<TomorrowMealDTO> tomorrowFromTonight
 ) {
-    public record Meal(
+    public record MealDTO(
             int day,
             String name,
             String label,
@@ -17,4 +18,6 @@ public record RecipeResponseDTO(
             String dinnertimeInstruction,
             List<String> missingIngredients
     ) {}
+
+    public record TomorrowMealDTO(String name, String method){}
 }

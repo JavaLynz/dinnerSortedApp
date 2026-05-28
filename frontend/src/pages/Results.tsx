@@ -26,6 +26,13 @@ interface LocationState {
     ingredients: string[]
     dietary: string[]
     people: number
+    fussyEaterNotes: string
+    busyNights: string[]
+    chaoticNights: string
+    sundayWindow: string
+    weeknightTime: string
+    freezerProteins: string[]
+
 }
 
 // ── Constants ────────────────────────────────────────────────────
@@ -51,7 +58,18 @@ export default function ResultsPage() {
     const location = useLocation()
     const navigate = useNavigate()
     const state = location.state as LocationState
-    const { mealPlan: initial, ingredients = [], dietary = [], people = 4 } = state || {}
+    const {
+        mealPlan: initial,
+        ingredients = [],
+        dietary = [],
+        people = 4,
+        fussyEaterNotes = "",
+        busyNights = [],
+        chaoticNights = "",
+        sundayWindow = "90 min",
+        weeknightTime = "20-30 min",
+        freezerProteins = []
+    } = state || {}
 
     const [meals, setMeals] = useState<Meal[]>(initial?.meals || [])
     const [shoppingList, setShoppingList] = useState<string[]>(initial?.shoppingList || [])
@@ -112,6 +130,12 @@ export default function ResultsPage() {
                     dietary,
                     days: meals.length,
                     people,
+                    fussyEaterNotes,
+                    busyNights,
+                    chaoticNights,
+                    sundayWindow,
+                    weeknightTime,
+                    freezerProteins,
                     exclude: excludeNames,
                     keep: keepDescriptions
                 }
@@ -143,7 +167,18 @@ export default function ResultsPage() {
         try {
             const res = await axios.post(
                 `${import.meta.env.VITE_API_BASE_URL}/api/recipes/generate`,
-                { ingredients, dietary, days: meals.length, people, exclude: [], keep: [] }
+                {
+                    ingredients,
+                    dietary,
+                    days: meals.length,
+                    people,
+                    fussyEaterNotes,
+                    busyNights,
+                    chaoticNights,
+                    sundayWindow,
+                    weeknightTime,
+                    freezerProteins
+                }
             )
             setMeals(res.data.meals)
             setShoppingList(res.data.shoppingList)
