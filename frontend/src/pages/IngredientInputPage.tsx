@@ -461,13 +461,13 @@ export default function IngredientInputPage() {
                             label="Days"
                             value={days}
                             onChange={setDays}
-                            options={[1,2,3,4,5,6,7].map(d => ({ value: d, label: `${d} ${d === 1 ? "day" : "days"}` }))}
+                            options={[1,2,3,4,5,6,7].map(d => ({ value: d, label: `${d} ${d === 1 ? " day" : " days"}` }))}
                         />
                         <SelectField
                             label="People"
                             value={people}
                             onChange={setPeople}
-                            options={[1,2,3,4,5,6,7,8].map(p => ({ value: p, label: `${p} ${p === 1 ? "person" : "people"}` }))}
+                            options={[1,2,3,4,5,6,7,8].map(p => ({ value: p, label: `${p} ${p === 1 ? " person" : " people"}` }))}
                         />
                     </div>
                 </Section>

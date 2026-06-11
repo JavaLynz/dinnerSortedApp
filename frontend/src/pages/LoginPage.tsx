@@ -1,13 +1,61 @@
-import {useState} from "react";
-import {supabase} from "../services/SupabaseClient.ts";
+import { useState } from "react"
+import { supabase } from "../services/SupabaseClient"
 
 type Stage = "input" | "sent"
+
+// ── Email provider detection ─────────────────────────────────────
+const EMAIL_PROVIDERS: { domains: string[]; label: string; url: string; color: string }[] = [
+    {
+        domains: ["gmail.com", "googlemail.com"],
+        label: "Open Gmail",
+        url: "https://mail.google.com",
+        color: "#EA4335"
+    },
+    {
+        domains: ["outlook.com", "hotmail.com", "hotmail.co.uk", "live.com", "msn.com"],
+        label: "Open Outlook",
+        url: "https://outlook.live.com",
+        color: "#0078D4"
+    },
+    {
+        domains: ["yahoo.com", "yahoo.co.uk", "yahoo.fr", "yahoo.de"],
+        label: "Open Yahoo Mail",
+        url: "https://mail.yahoo.com",
+        color: "#6001D2"
+    },
+    {
+        domains: ["icloud.com", "me.com", "mac.com"],
+        label: "Open iCloud Mail",
+        url: "https://www.icloud.com/mail",
+        color: "#3D8EDB"
+    },
+    {
+        domains: ["protonmail.com", "proton.me", "pm.me"],
+        label: "Open Proton Mail",
+        url: "https://mail.proton.me",
+        color: "#6D4AFF"
+    },
+    {
+        domains: ["aol.com"],
+        label: "Open AOL Mail",
+        url: "https://mail.aol.com",
+        color: "#FF0B00"
+    }
+]
+
+function getEmailProvider(email: string) {
+    const domain = email.split("@")[1]?.toLowerCase()
+    if (!domain) return null
+    return EMAIL_PROVIDERS.find(p => p.domains.includes(domain)) || null
+}
 
 export default function LoginPage() {
     const [email, setEmail] = useState("")
     const [stage, setStage] = useState<Stage>("input")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+
+    const provider = getEmailProvider(email)
 
     const handleSend = async () => {
         if (!email.trim()) {
@@ -16,7 +64,6 @@ export default function LoginPage() {
         }
         setError("")
         setLoading(true)
-
         try {
             const { error } = await supabase.auth.signInWithOtp({
                 email,
@@ -24,11 +71,8 @@ export default function LoginPage() {
                     emailRedirectTo: window.location.origin
                 }
             })
-            if (error) {
-                setError(error.message)
-            } else {
-                setStage("sent")
-            }
+            if (error) throw error
+            setStage("sent")
         } catch (err: any) {
             setError(err.message)
         } finally {
@@ -60,12 +104,8 @@ export default function LoginPage() {
                 zIndex: 0
             }} />
 
-            <div style={{
-                position: "relative",
-                zIndex: 1,
-                width: "100%",
-                maxWidth: "400px"
-            }}>
+            <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "400px" }}>
+
                 {/* Logo */}
                 <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
                     <div style={{ display: "inline-flex", alignItems: "baseline", gap: "2px", marginBottom: "0.75rem" }}>
@@ -111,18 +151,17 @@ export default function LoginPage() {
                                 fontWeight: 600,
                                 color: "#EDE8DC",
                                 marginBottom: "0.3rem"
-                            }}> Sign in
-                            </h2>
+                            }}>Sign in</h2>
                             <p style={{
                                 fontSize: "0.82rem",
                                 color: "rgba(237,232,220,0.4)",
-                                marginBottom: "1.75rem"
+                                marginBottom: "1.75rem",
+                                lineHeight: 1.55
                             }}>
-                                Enter your email and we'll send you a link - no password needed
+                                Enter your email and we'll send you a link — no password needed.
                             </p>
 
-                            {/* Email */}
-                            <div style={{ marginBottom: "1rem" }}>
+                            <div style={{ marginBottom: "1.25rem" }}>
                                 <label style={{
                                     display: "block",
                                     fontSize: "0.72rem",
@@ -136,6 +175,7 @@ export default function LoginPage() {
                                     type="email"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
+                                    onKeyDown={e => e.key === "Enter" && handleSend()}
                                     placeholder="you@example.com"
                                     style={{
                                         width: "100%",
@@ -154,7 +194,6 @@ export default function LoginPage() {
                                     onBlur={e => (e.target.style.borderColor = "rgba(82,232,168,0.15)")}
                                 />
                             </div>
-
 
                             {error && (
                                 <p style={{
@@ -183,79 +222,125 @@ export default function LoginPage() {
                                     fontSize: "0.95rem",
                                     fontWeight: 700,
                                     fontFamily: "inherit",
-                                    cursor: loading ? "wait" : "pointer",
+                                    cursor: loading ? "not-allowed" : "pointer",
                                     boxShadow: loading ? "none" : "0 0 20px rgba(82,232,168,0.2)",
-                                    transition: "opacity 0.2s",
-                                    marginBottom: "1rem",
                                     letterSpacing: "0.02em"
                                 }}
                             >
-                        {loading
-                            ? "Sending…"
-                            : "Send my link → "
-                        }
-                    </button>
-                  </>
-              ) : (
+                                {loading ? "Sending…" : "Send my link →"}
+                            </button>
+                        </>
+                    ) : (
+                        /* Sent confirmation */
+                        <div style={{ textAlign: "center", padding: "0.5rem 0" }}>
+                            <div style={{
+                                width: "48px",
+                                height: "48px",
+                                borderRadius: "50%",
+                                background: "rgba(82,232,168,0.1)",
+                                border: "1px solid rgba(82,232,168,0.3)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                margin: "0 auto 1.25rem",
+                                fontSize: "1.4rem"
+                            }}>✉️</div>
 
-                  <div style={{ textAlign: "center", padding: "0.5rem 0"}}>
-                      <div style={{
-                          width: "48px",
-                          height: "48px",
-                          borderRadius: "50%",
-                          background: "rgba(82,232,168,0.1)",
-                          border: "1px solid rgba(82,232,168,0.3)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          margin: "0 auto 1.25rem",
-                          fontSize: "1.4rem"
-                  }}>✉️</div>
-                  <h2 style={{
-                      fontFamily: "'Noto Serif',Georgia, serif",
-                      fontSize: "1.15rem",
-                      fontWeight: "600",
-                      color: "EDE8DC",
-                      marginBottom: "0.5rem"
-                  }}>Check your inbox</h2>
-                  <p style={{
-                      fontSize: "0.85rem",
-                      color: "rgba(237,232,220,0.5)",
-                      lineHeight: 1.65,
-                      marginBottom: "1.5rem"
-                  }}>
-                      We've sent a sign-in link to<br />
-                      <span style={{ color: "#52E8A8", fontWeight: 500}}>{email}</span>
-                  </p>
-                  <p style={{
-                      fontSize: "0.78rem",
-                      color: "rgba(237,232,220,0.25)",
-                      fontStyle: "Italic",
-                      lineHeight: 1.55
-                  }}>
-                      The link expires in 1 hour.<br />
-                      Check your spam folder if it doesn't arrive.
-                  </p>
-                  <button
-                      onClick={() => {setStage("input"); setError("")}}
-                      style={{
-                          background: "transparent",
-                          border: "none",
-                          color: "rgba(237,232,220,0.3)",
-                          fontSize: "0.8rem",
-                          cursor: "pointer",
-                          fontFamily: "inherit",
-                          marginTop: "1.25rem",
-                          padding: "0.25rem"
-                      }}
-                      onMouseEnter={e => ((e.target as HTMLElement).style.color = "#52E8A8")}
-                      onMouseLeave={e => ((e.target as HTMLElement).style.color = "rgba(237,232,220,0.3")}
-                      >
-                      Wrong email? Go back
-                  </button>
-              </div>
-          )}
-      </div>
+                            <h2 style={{
+                                fontFamily: "'Noto Serif', Georgia, serif",
+                                fontSize: "1.15rem",
+                                fontWeight: 600,
+                                color: "#EDE8DC",
+                                marginBottom: "0.5rem"
+                            }}>Check your inbox</h2>
+
+                            <p style={{
+                                fontSize: "0.85rem",
+                                color: "rgba(237,232,220,0.5)",
+                                lineHeight: 1.65,
+                                marginBottom: "1.5rem"
+                            }}>
+                                We've sent a sign-in link to<br />
+                                <span style={{ color: "#52E8A8", fontWeight: 500 }}>{email}</span>
+                            </p>
+
+                            {/* Open email provider button */}
+                            {provider && (
+                                <a
+                                    href={provider.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        gap: "0.5rem",
+                                        width: "100%",
+                                        background: "rgba(237,232,220,0.05)",
+                                        border: "1px solid rgba(237,232,220,0.12)",
+                                        borderRadius: "0.75rem",
+                                        padding: "0.85rem",
+                                        fontSize: "0.9rem",
+                                        fontWeight: 600,
+                                        color: "#EDE8DC",
+                                        textDecoration: "none",
+                                        fontFamily: "inherit",
+                                        marginBottom: "1rem",
+                                        boxSizing: "border-box",
+                                        transition: "background 0.2s, border-color 0.2s"
+                                    }}
+                                    onMouseEnter={e => {
+                                        const el = e.currentTarget
+                                        el.style.background = "rgba(237,232,220,0.09)"
+                                        el.style.borderColor = "rgba(237,232,220,0.25)"
+                                    }}
+                                    onMouseLeave={e => {
+                                        const el = e.currentTarget
+                                        el.style.background = "rgba(237,232,220,0.05)"
+                                        el.style.borderColor = "rgba(237,232,220,0.12)"
+                                    }}
+                                >
+                                    <span style={{
+                                        width: "8px",
+                                        height: "8px",
+                                        borderRadius: "50%",
+                                        background: provider.color,
+                                        flexShrink: 0
+                                    }} />
+                                    {provider.label}
+                                </a>
+                            )}
+
+                            <p style={{
+                                fontSize: "0.78rem",
+                                color: "rgba(237,232,220,0.25)",
+                                fontStyle: "italic",
+                                lineHeight: 1.55,
+                                marginBottom: "1.25rem"
+                            }}>
+                                The link expires in 1 hour.<br />
+                                Check your spam folder if it doesn't arrive.
+                            </p>
+
+                            <button
+                                onClick={() => { setStage("input"); setError("") }}
+                                style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    color: "rgba(237,232,220,0.3)",
+                                    fontSize: "0.8rem",
+                                    cursor: "pointer",
+                                    fontFamily: "inherit",
+                                    padding: "0.25rem"
+                                }}
+                                onMouseEnter={e => ((e.target as HTMLElement).style.color = "#52E8A8")}
+                                onMouseLeave={e => ((e.target as HTMLElement).style.color = "rgba(237,232,220,0.3)")}
+                            >
+                                Wrong email? Go back
+                            </button>
+                        </div>
+                    )}
+                </div>
 
                 <p style={{
                     textAlign: "center",
