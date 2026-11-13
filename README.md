@@ -2,8 +2,6 @@
 
 > **AI-powered meal planning that turns Sunday prep into a sorted week.**
 
-**Live app → [dinnersorted.app](https://app.dinnersorted.app)**
-
 Dinner Sorted solves the daily "what's for dinner?" problem with AI-generated weekly meal plans personalised to your household — dietary needs, batch cooking preferences, and what's already in your fridge. Each plan comes with a smart shopping list for what's missing.
 
 Built as a full-stack SaaS product and official graduation project (examensarbete) at Edugrade, Sweden.
@@ -132,4 +130,4 @@ See `/docs` for kravdokument and wireframes.
 
 ## 👩‍💻 Author
 
-**Lynsey Fox** — [linkedin.com/in/lynseyfox](https://linkedin.com/in/lynseyfox) · [dinnersorted.app](https://app.dinnersorted.app)
+**Lynsey Fox** — [linkedin.com/in/lynseyfox](https://linkedin.com/in/lynseyfox) 
